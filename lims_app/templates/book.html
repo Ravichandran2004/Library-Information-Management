@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Details</title>
+    <style>
+        /* Basic styling for the page */
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        .book-details {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px; /* Space between books */
+        }
+        .book-details h1 {
+            margin-top: 0; /* Remove top margin from h1 */
+        }
+        .book-details p {
+            margin-bottom: 10px; /* Space between paragraphs */
+        }
+        .book-details .availability {
+            font-weight: bold;
+            color: green; /* Green for available */
+        }
+        .book-details .availability.unavailable {
+            color: red; /* Red for unavailable */
+        }
+        .borrow-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50; /* Green */
+            color: white;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+        .borrow-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Book Details</h1>
+
+    <div class="book-details">
+        <h1>{{ book.title }}</h1>
+        <p><strong>Author:</strong> {{ book.author }}</p>
+        <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+        <p><strong>Genre:</strong> {{ book.genre }}</p>
+        <p><strong>Description:</strong> {{ book.description }}</p>
+        <p><strong>Price (5 days):</strong> ${{ book.price_5_days }}</p>
+        <p><strong>Daily Rate (after 5 days):</strong> ${{ book.daily_rate }}</p>
+        <p class="availability {% if not book.available %}unavailable{% endif %}">
+            <strong>Availability:</strong> {% if book.available %}Available{% else %}Not Available{% endif %}
+        </p>
+
+        {% if book.available %}
+            <a href="{% url 'borrow_book' book.id %}" class="borrow-button">Borrow This Book</a>
+        {% endif %}
+    </div>
+
+    <a href="{% url 'book_list' %}">Back to Book List</a>  </body>
+</html>
