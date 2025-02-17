@@ -1,0 +1,106 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="container-flex text-center justify-content-center align-items-center" style="padding-top: 20px; padding-bottom: 20px; margin-top: 10px; vertical-align: middle;">
+    <div class="row justify-content-center align-middle" style="margin-top:10px; height:55px;">
+        {% comment %} <div class="col-md-4 text-light" style="background: #4B088A; width: 490px;">
+            <h1>Book List</h1>
+        </div> {% endcomment %}
+        <div class="col-md-8">
+            <h4>Search Books</h4>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Book Search -->
+        <div class="col-md-12">
+            <div class="row">
+                <nav class="navbar bg-body-light" style="padding-top: 20px; padding-bottom: 20px;">
+                    <div class="container-fluid justify-content-center align-item-center">
+                        <form class="d-flex" role="search" action="{% url 'book_list' %}" method="GET">
+                            <input class="form-control me-2" type="search" placeholder="Search by Title or Author" aria-label="Search" name="q" value="{{ query }}">
+                            <button class="btn btn-outline-primary" type="submit">Search</button>
+                        </form>
+                    </div>
+                </nav>
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <p>{{ books|length }} books found.</p>
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <div class="container" style="overflow-y: auto; height: 400px;">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td>Book ID</td>
+                                <td>Title</td>
+                                <td>Author</td>
+                                <td>ISBN</td>
+                                <td>Price for 5 Days</td>
+                                <td>Daily Rate</td>
+                                <td>Availability</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in books %}
+                                <tr>
+                                    <td>{{ book.id }}</td>
+                                    <td><a href="{% url 'book_detail' book.id %}">{{ book.title }}</a></td>
+                                    <td>{{ book.author }}</td>
+                                    <td>{{ book.isbn }}</td>
+                                    <td>${{ book.price_5_days }}</td>
+                                    <td>${{ book.daily_rate }}</td>
+                                    <td>
+                                        {% if book.available %}
+                                            <span class="btn btn-success">Available</span>
+                                        {% else %}
+                                            <span class="btn btn-secondary">Borrowed</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7">No books found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>    
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+{% comment %} {% extends "index.html" %}
+{% block content %}
+<h2>Library Books</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>ISBN</th>
+            <th>Available</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for book in books %}
+        <tr>
+            <td>{{ book.title }}</td>
+            <td>{{ book.author }}</td>
+            <td>{{ book.isbn }}</td>
+            <td>{% if book.available %}Yes{% else %}No{% endif %}</td>
+            <td><a href="{% url 'book_detail' book.id %}" class="btn btn-primary">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No books available.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %} {% endcomment %}

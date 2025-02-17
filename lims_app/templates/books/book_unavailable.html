@@ -1,0 +1,11 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center text-danger">Book Unavailable</h2>
+    <p class="text-center">We're sorry, but the book <strong>{{ book.title }}</strong> is currently unavailable.</p>
+    <div class="text-center mt-4">
+        <a href="{% url 'book_list' %}" class="btn btn-primary">Back to Book List</a>
+    </div>
+</div>
+{% endblock %}

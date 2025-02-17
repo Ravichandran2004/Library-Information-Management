@@ -1,14 +1,17 @@
 from django.contrib import admin
 from.models import *
 from .models import Book
+from .models import BorrowRecord
 
 # Register your models here.
 admin.site.register(Reader)
+admin.site.register(Book)
+# admin.site.register(BorrowRecord)
 
-@admin.register(Book)
-class BookAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'isbn', 'genre', 'price_5_days', 'daily_rate', 'available')  # Add fields to list display
-    search_fields = ('title', 'author', 'isbn')
-    
-class BookInstanceAdmin(admin.ModelAdmin):
-    list_filter = ('status', 'due_back')
+class BorrowRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'book', 'user', 'borrowed_date', 'return_date', 'is_returned')
+    list_filter = ('is_returned', 'borrowed_date', 'return_date')
+    search_fields = ('book__title', 'user__username')
+
+admin.site.register(BorrowRecord, BorrowRecordAdmin)
+

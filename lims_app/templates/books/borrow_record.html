@@ -1,0 +1,59 @@
+{% extends 'index.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Borrow Records</h2>
+    <form method="GET" action="{% url 'borrow_record_list' %}" class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="q" value="{{ query }}">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    </form>
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Book</th>
+                <th>Borrower</th>
+                <th>Borrow Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in page_obj %}
+            <tr>
+                <td>{{ record.id }}</td>
+                <td>{{ record.book.title }}</td>
+                <td>{{ record.user.username }}</td>
+                <td>{{ record.borrowed_date|date:"Y-m-d H:i" }}</td>
+                <td>{{ record.return_date|date:"Y-m-d H:i" }}</td>
+                <td>
+                    {% if record.is_returned %}
+                        <span class="badge badge-success">Returned</span>
+                    {% else %}
+                        <span class="badge badge-warning">Not Returned</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+{% endblock %}
+
+
+
+

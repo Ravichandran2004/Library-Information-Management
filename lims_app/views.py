@@ -6,7 +6,12 @@ from.models import Reader
 from.models import *
 from django.db import connection
 from django.shortcuts import render, get_object_or_404
-from .models import Book  
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import Book, BorrowRecord
+from .forms import BorrowBookForm
+from django.db.models import Q
+from django.utils import timezone
+# from .forms import BorrowRecordForm
 
 # Create your views here.
 def home(request):
@@ -65,24 +70,84 @@ def save_reader(request):
     reader_item.save()
     return redirect('/readers')
 
-# def book_detail(request, book_id):
-#     book = get_object_or_404(Book, pk=book_id)  # Get the book or show 404 error
-#     return render(request, 'library/book.html', {'book': book})  # Pass the book to the template
-
-def book_detail(request, book_id):
-    """
-    View to display details of a specific book.
-
-    Args:
-        request: The HTTP request object.
-        book_id: The ID of the book to display.
-
-    Returns:
-        A rendered HTML template (book.html) with the book details.
-    """
-    book = get_object_or_404(Book, pk=book_id)  # Retrieve the book or show 404
-    return render(request, 'library/book.html', {'book': book})  # Pass book to the template
+def return_book(request, book_id):
+    borrow_record = get_object_or_404(BorrowRecord, id=book_id)
+    context = {'borrow_record': borrow_record}
+    return render(request, 'books/return_book.html', {"return_books": return_book})
 
 def book_list(request):
-    books = Book.objects.all()
-    return render(request, 'lims_app/book_list.html', {'books': books}) 
+    books = Book.objects.all()  # Fetch all books
+    return render(request, "books/book_list.html", {"books": books})
+
+def book_list(request):
+    query = request.GET.get('q')
+    if query:
+        books = Book.objects.filter(
+            Q(title__icontains=query) | Q(author__icontains=query)
+        )
+    else:
+        books = Book.objects.all()
+    return render(request, 'books/book_list.html', {'books': books, 'query': query})
+
+def book_detail(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    return render(request, 'books/book_detail.html', {'book': book})
+
+def borrow_record_list(request):
+    borrow_records = BorrowRecord.objects.all()
+    return render(request, "books/borrow_record.html", {"borrow_records": borrow_records})
+    
+@login_required
+def borrow_record(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if book.available:
+        BorrowRecord.objects.create(
+            user=request.user,
+            book=book,
+            borrowed_date=timezone.now(),
+            return_date=timezone.now() + timezone.timedelta(days=5),
+            is_returned=False
+        )
+        book.available = False
+        book.save()
+        return redirect('books/my_bag')  # Redirect to 'My Bag' page after borrowing
+    else:
+        return render(request, 'books/book_unavailable.html', {'book': book})
+
+def my_bag(request):
+    borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
+    return render(request, 'books/mybag.html', {'borrow_records': borrow_records})  
+
+# def borrow_record(request, book_id):
+#     if request.method == 'POST':
+#         form = BorrowRecordForm(request.POST) # Bind the form
+#         if form.is_valid():
+#             try:
+#                 borrow_record = form.save(commit=False) # Don't save yet
+#                 borrow_record.book_id = book_id # Set book_id manually
+#                 borrow_record.save()  # Try to save the record
+#                 return redirect('my_bag')  # Redirect on success
+#             except ValidationError as e:
+#                 # Handle the validation error
+#                 form.add_error(None, e)  # Add to form errors
+#                 # Example: Render the form again with the error message
+#                 return render(request, 'borrow_template.html', {'form': form, 'error_message': e}) # Or return form errors
+#         else:
+#             return render(request, 'borrow_template.html', {'form': form}) # Return form with errors
+#     else:  # GET request
+#         form = BorrowRecordForm()
+#         return render(request, 'borrow_template.html', {'form': form})
+
+
+# @login_required
+# def return_book(request, book_id):
+#     borrow_record = get_object_or_404(BorrowRecord, book_id=book_id, user=request.user, is_returned=False)
+#     if request.method == 'POST':
+#         borrow_record.is_returned = True
+#         borrow_record.return_date = timezone.now()
+#         borrow_record.save()
+#         book = borrow_record.book
+#         book.available = True
+#         book.save()
+#         return redirect('my_bag')  # Redirect to 'My Bag' page after returning
+#     return render(request, 'return_book.html', {'borrow_record': borrow_record})

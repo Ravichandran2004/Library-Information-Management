@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Return Receipt</h2>
+<p>Book: {{ borrow_record.book.title }}</p>
+<p>Borrowed By: {{ borrow_record.borrowed_by }}</p>
+<p>Borrowed On: {{ borrow_record.borrowed_on }}</p>
+<p>Return Date: {{ borrow_record.return_date }}</p>
+<p>Total Fee: ${{ fee }}</p>
+<a href="{% url 'book_list' %}" class="btn btn-primary">Back to Books</a>
+{% endblock %}

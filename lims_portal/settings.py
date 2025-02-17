@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
 ]
 
 MIDDLEWARE = [
@@ -82,7 +81,7 @@ DATABASES = {
         'NAME': 'Library Information Management System',
         'USER':'postgres',
         'PASSWORD' :'6369',
-        'HOST' : 'localhost'
+        'HOST' : 'localhost',
     }
 }
 
