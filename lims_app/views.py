@@ -403,3 +403,13 @@ def receipt(request, record_id):
     # or if record.user == request.user, etc.
 
     return render(request, 'receipt.html', {'record': record})
+
+def register_staff(request):
+    if request.method == 'POST':
+        form = StaffRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()  # creates a staff user
+            return redirect('somewhere')  # e.g. staff list or login
+    else:
+        form = StaffRegistrationForm()
+    return render(request, 'register_staff.html', {'form': form})
