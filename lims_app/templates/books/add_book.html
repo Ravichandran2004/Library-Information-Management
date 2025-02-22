@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+{% block main_content %}
+
+<div class="container">
+    <h2 class="text-center">Add a New Book</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" name="title" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Author</label>
+            <input type="text" class="form-control" name="author" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">ISBN</label>
+            <input type="text" class="form-control" name="isbn" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Price for 5 Days</label>
+            <input type="number" class="form-control" name="price_5_days" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Daily Rate</label>
+            <input type="number" class="form-control" name="daily_rate" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Availability</label>
+            <select class="form-control" name="available">
+                <option value="True">Available</option>
+                <option value="False">Borrowed</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Book</button>
+    </form>
+</div>
+
+{% endblock %}

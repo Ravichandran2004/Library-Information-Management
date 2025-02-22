@@ -1,0 +1,27 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="container mt-4">
+    <h2>Upload Books</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="book_file" class="form-label">Select CSV or Excel File</label>
+            <input
+              type="file"
+              class="form-control"
+              id="book_file"
+              name="book_file"
+              accept=".csv,.xlsx,.xls"
+              required
+            >
+        </div>
+        <button type="submit" class="btn btn-success">Upload</button>
+    </form>
+</div>
+{% endblock %}
+
+
+
+

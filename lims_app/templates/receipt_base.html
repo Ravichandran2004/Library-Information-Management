@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Receipt</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #FAFAFA;
+      margin: 20px;
+    }
+    .receipt-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border: 1px solid #ccc;
+      padding: 20px;
+    }
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .receipt-header h2 {
+      margin: 0;
+    }
+    .btn-print {
+      background: #28a745;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .btn-print:hover {
+      background: #218838;
+    }
+    .amount {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  {% block content %}{% endblock %}
+</body>
+</html>

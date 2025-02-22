@@ -1,0 +1,54 @@
+{% block main_content %}
+<div class="container-flex text-center justify-content-center align-items-center" style="padding-top: 20px; padding-bottom: 20px; margin-top: 10px; vertical-align: middle;">
+    <div class="row justify-content-center align-middle" style="margin-top:10px; height:55px;">
+        <div class="col-md-12 text-light" style="background: #4B088A;">
+            <h1>{{ book.title }}</h1>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-md-12">
+            <p><strong>Author:</strong> {{ book.author }}</p>
+            <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+            <p><strong>Price for 5 days:</strong> ${{ book.price_5_days }}</p>
+            <p><strong>Daily Rate:</strong> ${{ book.daily_rate }}</p>
+
+            {% if book.available %}
+                <h3>Borrow this Book</h3>
+                <form method="POST" action="{% url 'borrow_record' book.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">Borrow</button>
+                </form>
+            {% else %}
+                <p class="text-danger">This book is currently borrowed.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- {% comment %} extends "index.html" -->
+<!--{% block content %}-->
+<!--<h2>{{ book.title }}</h2>-->
+<!--<p><strong>Author:</strong> {{ book.author }}</p>-->
+<!--<p><strong>ISBN:</strong> {{ book.isbn }}</p>-->
+<!--<p><strong>Price for 5 days:</strong> ${{ book.price_5_days }}</p>-->
+<!--<p><strong>Daily Rate:</strong> ${{ book.daily_rate }}</p>-->
+
+<!--{% if book.available %}-->
+<!--    <h3>Borrow this Book</h3>-->
+<!--    <form method="POST">-->
+<!--        {% csrf_token %}-->
+<!--        {{ form.as_p }}-->
+<!--        <button type="submit" class="btn btn-success">Borrow</button>-->
+<!--    </form>-->
+<!--{% else %}-->
+<!--    <p class="text-danger">This book is currently borrowed.</p>-->
+<!--{% endif %}-->
+<!--{% endblock %}-->
+
+
+
+<!--{% extends "index.html" %}-->
+<!--{% load static %} -->
+<!-- {% endcomment %}-->

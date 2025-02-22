@@ -1,0 +1,40 @@
+{% extends "receipt_base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="receipt-container">
+    <div class="receipt-header">
+        <!-- Include the Library Name in the heading -->
+        <h2>VGM Library - Return Receipt</h2>
+    </div>
+
+    <!-- Book & Borrow Details -->
+    <p><strong>Book Title:</strong> {{ record.book.title }}</p>
+    <p><strong>Borrowed Date:</strong> {{ record.borrowed_date }}</p>
+    <p><strong>Return Date:</strong> {{ record.return_date }}</p>
+    <p><strong>Borrowed By:</strong> {{ record.user.username }}</p>
+
+    <!-- Fee or Amount (If applicable) -->
+    {% if record.calculate_fee %}
+    <p class="amount">
+      <strong>Amount:</strong> ${{ record.calculate_fee }}
+    </p>
+    {% endif %}
+
+    <!-- Library Name & Signature Line -->
+    <hr>
+    <p>
+      <strong>Library Name:</strong> VGM Library
+    </p>
+    <p>
+      <strong>Signature of Librarian: </strong> Raghav
+    </p>
+
+    <!-- Print Button -->
+    <div class="text-center">
+        <button onclick="window.print()" class="btn-print">
+            Print Receipt
+        </button>
+    </div>
+</div>
+{% endblock %}

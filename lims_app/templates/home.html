@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+{% extends 'index.html' %}
+{% load static %}
+
+{% block main_content %}
+<main role="main">
+<div class = "jumbotron">
+    <div class="containers">
+        <img src="{% static 'LIMS_LOGO.png' %}"class="rounded float-start" alt="LIMS logo" height="155" style ="margin-right:20px;">
+        <h1 class ="display-4">Hello, Readers!</h1>
+        <p>Welcome to VGM library.We have a large collection of books to cater the reading needs of all kinds of readers.</p> 
+        <p><a role="button" href="#" class="btn btn-primary ">Browse our collection >></a></p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+
+      <div class="col">
+        <h2>Why Reading is importent</h2>
+          <p>Reading is good for you because it improves your focus, memory, empathy, and communication skills. It can reduce stress, improve your mental health, and help you live longer. Reading also allows you to learn new things to help you succeed in your work and relationships.</p>
+      </div>
+
+      <div class="col">
+        <h2>Key Benefits</h2>
+        <ul>
+            <li>Increase your vocabulary and comprehension skills</li>
+            <li>Reduce stress</li>
+            <li>Improve mental health</li>
+            <li>Prevents cognitive decline</li>
+        </ul>
+      </div>
+
+      <div class="col">
+        <h2>Thought for the day!</h2>
+        <p>A quote by Ella Fitzgerald: "Just don't give up trying to do what you really want to do. Where there is love and inspiration, I don't think1 you can go wrong".</p>
+      </div>
+
+    </div>
+     <hr>
+</div>
+</main>
+<footer class="container">
+    <p>@ VGM Library 2024</p>
+{% endblock %}

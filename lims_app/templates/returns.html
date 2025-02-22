@@ -1,0 +1,48 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block main_content %}
+<div class="container py-5" style="background: linear-gradient(135deg, #E3F2FD, #FFFFFF); border-radius: 8px;">
+    <h2 class="text-center text-primary mb-4">My Returns</h2>
+    {% if returned_records %}
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="m-0">Returned Books</h4>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover table-striped table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Borrow Date</th>
+                            <th>Return Date</th>
+                            <!-- NEW Receipt column -->
+                            <th>Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in returned_records %}
+                        <tr>
+                            <td>{{ record.book.title }}</td>
+                            <td>{{ record.borrowed_date }}</td>
+                            <td>{{ record.return_date }}</td>
+                            <!-- Link to a 'receipt' view, passing BorrowRecord's ID -->
+                            <td>
+                                <a
+                                  href="{% url 'receipt' record.id %}"
+                                  class="btn btn-primary btn-sm"
+                                >
+                                  Receipt
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-muted">No books returned yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

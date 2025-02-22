@@ -1,0 +1,229 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block main_content %}
+<!-- Outer container with some padding -->
+<div class="container py-5" style="background: linear-gradient(135deg, #E3F2FD, #FFFFFF); border-radius: 8px;">
+    <!-- Centered Page Header -->
+    <div class="text-center mb-4">
+        <h1 class="fw-bold text-primary">
+            Manage Your Borrowed Books <i class="bi bi-book-half"></i>
+        </h1>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Borrowed Books -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <!-- Centered card header -->
+                <div class="card-header bg-primary text-white text-center d-flex justify-content-center align-items-center">
+                    <i class="bi bi-collection me-2"></i>
+                    <h4 class="m-0">My Borrowed Books</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Client-Side Search Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input
+                          type="text"
+                          id="borrowedSearch"
+                          class="form-control"
+                          placeholder="Search borrowed books..."
+                          onkeyup="filterBorrowedTable()"
+                        />
+                    </div>
+
+                    {% if borrow_records %}
+                        <table
+                          class="table table-hover table-striped table-sm align-middle"
+                          id="borrowedTable"
+                        >
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Borrow Date</th>
+                                    <th>Return Date</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in borrow_records %}
+                                <!-- Overdue Highlight if return_date < now -->
+                                <tr class="{% if record.return_date and record.return_date < now %}table-danger{% endif %}">
+                                    <td class="fw-semibold">
+                                        {{ record.book.title }}
+                                    </td>
+                                    <td>{{ record.borrowed_date }}</td>
+                                    <td>
+                                        {% if record.return_date %}
+                                            {{ record.return_date }}
+                                        {% else %}
+                                            <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a
+                                          href="{% url 'return_book' record.book.id %}"
+                                          class="btn btn-success btn-sm d-inline-flex align-items-center"
+                                          data-bs-toggle="tooltip"
+                                          data-bs-placement="top"
+                                          title="Return this book"
+                                          onclick="showSuccessToast('Book returned successfully!')"
+                                        >
+                                            <i class="bi bi-arrow-return-left me-1"></i>
+                                            Return
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <!-- Collapsible extra details (example) -->
+                        <button
+                          class="btn btn-link mt-2"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#moreDetails"
+                          aria-expanded="false"
+                          aria-controls="moreDetails"
+                        >
+                            Show More Details
+                        </button>
+                        <div class="collapse" id="moreDetails">
+                            <div class="card card-body mt-2">
+                                <p>
+                                    <strong>Late Fees:</strong> $1 per day overdue.
+                                    <br />
+                                    <strong>Max Borrow Days:</strong> 14 days.
+                                </p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You have not borrowed any books.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Ready For Checkout -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <!-- Centered card header -->
+                <div class="card-header bg-success text-white text-center d-flex justify-content-center align-items-center">
+                    <i class="bi bi-cart-check me-2"></i>
+                    <h4 class="m-0">Ready For Checkout</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Replaced floating labels with left-aligned labels -->
+                    <form method="POST" action="#" onsubmit="debugCheckout()">
+                        {% csrf_token %}
+
+                        <div class="mb-3 row">
+                            <label for="reader_id" class="col-sm-4 col-form-label text-end">
+                                Reader ID:
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="reader_id" name="reader_id" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label for="reader_name" class="col-sm-4 col-form-label text-end">
+                                Name:
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="reader_name" name="reader_name" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label for="reader_contact" class="col-sm-4 col-form-label text-end">
+                                Contact #:
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="reader_contact" name="reader_contact" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label for="reference_id" class="col-sm-4 col-form-label text-end">
+                                Reference ID:
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="reference_id" name="reference_id" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label for="start_datetime" class="col-sm-4 col-form-label text-end">
+                                Start date &amp; time:
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label for="return_datetime" class="col-sm-4 col-form-label text-end">
+                                Return due date &amp; time:
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="datetime-local" class="form-control" id="return_datetime" name="return_datetime" required>
+                            </div>
+                        </div>
+
+                        <!-- Checkout Button -->
+                        <button
+                          type="submit"
+                          class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="Checkout your selected books"
+                          onclick="showSuccessToast('Books checked out successfully!')"
+                        >
+                            <i class="bi bi-check-circle me-1"></i>
+                            Checkout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Scripts -->
+<script>
+// 1) Filter Borrowed Table (unchanged)
+function filterBorrowedTable() {
+  const input = document.getElementById("borrowedSearch");
+  const filter = input.value.toLowerCase();
+  const table = document.getElementById("borrowedTable");
+  const tr = table.getElementsByTagName("tr");
+
+  for (let i = 0; i < tr.length; i++) {
+    let rowText = tr[i].textContent || tr[i].innerText;
+    if (rowText.toLowerCase().indexOf(filter) > -1) {
+      tr[i].style.display = "";
+    } else {
+      tr[i].style.display = "none";
+    }
+  }
+}
+
+// 2) Debug function to see if the Checkout button is working
+function debugCheckout() {
+  // This will show in the browser console upon form submission
+  console.log("Checkout form submitted!");
+  // If you want an alert instead, uncomment below:
+  // alert("Checkout form submitted!");
+}
+
+// 3) Example Toast function (already used in your code)
+function showSuccessToast(message) {
+  // You can show a toast or console log
+  console.log(message);
+  // or display a real Bootstrap toast if you have a container
+}
+</script>
+{% endblock %}

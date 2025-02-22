@@ -1,0 +1,203 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block main_content %}
+<!-- Added some extra Bootstrap utility classes to improve the look -->
+<div class="container text-center bg-light p-4 rounded shadow" style="padding-top: 20px; padding-bottom: 20px; margin-top: 10px;">
+    <div class="row justify-content-center align-items-center mb-4">
+        <div class="col-md-8">
+            <!-- Added text-primary for a distinct heading color -->
+            <h4 class="text-primary">Search Books</h4>
+        </div>
+    </div>
+
+    <!-- Buttons that trigger the modals -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <!-- Kept the same, just added btn-sm for smaller, sleeker buttons -->
+            <button type="button" class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addBookModal">
+                Add Book
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadBookModal">
+                Upload Book
+            </button>
+        </div>
+    </div>
+
+    <!-- Book Search Form -->
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Added 'rounded shadow' for a subtle card-like look -->
+            <nav class="navbar bg-body-light rounded shadow" style="padding-top: 20px; padding-bottom: 20px;">
+                <div class="container-fluid d-flex justify-content-center">
+                    <!-- Use d-flex align-items-center so everything stays on one line -->
+                    <form class="d-flex align-items-center" role="search" action="{% url 'book_list' %}" method="GET">
+                        <input
+                          class="form-control me-2"
+                          type="search"
+                          placeholder="Search by Title or Author"
+                          aria-label="Search"
+                          name="q"
+                          value="{{ query }}"
+                        >
+                        <!-- Added btn-sm for the search & clear buttons -->
+                        <button class="btn btn-outline-primary btn-sm me-2" type="submit">Search</button>
+                        <a href="{% url 'book_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+                    </form>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Number of Books Found -->
+    <div class="row mt-3">
+        <p>{{ books|length }} books found.</p>
+    </div>
+
+    <!-- Book Table -->
+    <div class="row" style="margin-top: 20px;">
+        <div class="container" style="overflow-y: auto; height: 400px;">
+            <!-- Added table-striped, table-bordered, table-sm for a nicer table style -->
+            <table class="table table-hover table-striped table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <td>Book ID</td>
+                        <td>Title</td>
+                        <td>Author</td>
+                        <td>ISBN</td>
+                        <td>Price for 5 Days</td>
+                        <td>Daily Rate</td>
+                        <td>Availability</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr>
+                        <td>{{ book.id }}</td>
+                        <td><a href="{% url 'book_detail' book.id %}">{{ book.title }}</a></td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.isbn }}</td>
+                        <td>${{ book.price_5_days }}</td>
+                        <td>${{ book.daily_rate }}</td>
+                        <td>
+                            <form method="POST" action="{% url 'toggle_availability' book.id %}">
+                                {% csrf_token %}
+                                {% if book.available %}
+                                    <!-- Kept same color, added btn-sm -->
+                                    <button type="submit" class="btn btn-warning btn-sm">Borrowed</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-success btn-sm">Available</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No books found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Simple Previous & Next Buttons -->
+<div>
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-md-12 text-center">
+            {% if books.has_previous %}
+                <!-- Added btn-sm for consistency -->
+                <a href="?page={{ books.previous_page_number }}" class="btn btn-primary btn-sm me-2">Previous</a>
+            {% endif %}
+            {% if books.has_next %}
+                <a href="?page={{ books.next_page_number }}" class="btn btn-primary btn-sm">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!--# ADD BOOK MODAL-->
+<div class="modal fade" id="addBookModal" tabindex="-1" aria-labelledby="addBookModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'add_book' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addBookModalLabel">Add Book</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Form Fields for Adding a Book -->
+          <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+          </div>
+          <div class="mb-3">
+            <label for="author" class="form-label">Author</label>
+            <input type="text" class="form-control" id="author" name="author" required>
+          </div>
+          <div class="mb-3">
+            <label for="isbn" class="form-label">ISBN</label>
+            <input type="text" class="form-control" id="isbn" name="isbn" required>
+          </div>
+          <div class="mb-3">
+            <label for="price_5_days" class="form-label">Price for 5 Days</label>
+            <input type="number" class="form-control" id="price_5_days" name="price_5_days" required>
+          </div>
+          <div class="mb-3">
+            <label for="daily_rate" class="form-label">Daily Rate</label>
+            <input type="number" class="form-control" id="daily_rate" name="daily_rate" required>
+          </div>
+          <div class="mb-3">
+            <label for="available" class="form-label">Availability</label>
+            <select class="form-select" id="available" name="available">
+              <option value="True">Available</option>
+              <option value="False">Borrowed</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- Added btn-sm to the modal button as well -->
+          <button type="submit" class="btn btn-primary btn-sm">Add Book</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!--# UPLOAD BOOK MODAL (Your Provided Code) -->
+<div class="modal fade" id="uploadBookModal" tabindex="-1" aria-labelledby="uploadBookModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Note the 'enctype' for file upload -->
+      <form method="POST" action="{% url 'upload_book' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadBookModalLabel">Upload Books</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Form Fields for Uploading a Book File -->
+          <div class="mb-3">
+            <label for="book_file" class="form-label">Choose CSV or Excel File</label>
+            <input
+              type="file"
+              class="form-control"
+              id="book_file"
+              name="book_file"
+              accept=".csv,.xlsx,.xls"
+              required
+            >
+          </div>
+          <p class="text-muted">Accepted file formats: .csv, .xlsx, .xls</p>
+        </div>
+        <div class="modal-footer">
+          <!-- Also made the upload button btn-sm -->
+          <button type="submit" class="btn btn-success btn-sm">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

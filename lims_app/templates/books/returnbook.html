@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block main_content %}
+<div class="container mt-5">
+    <h2 class="text-center">Return Book</h2>
+    <p>
+        Are you sure you want to return the book
+        <strong>{{ borrow_record.book.title }}</strong>?
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <!-- Submits a POST request to confirm return -->
+        <button type="submit" class="btn btn-danger">Confirm Return</button>
+        <!-- Link to cancel and go back to your bag -->
+        <a href="{% url 'my_bag' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
