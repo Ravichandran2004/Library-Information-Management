@@ -139,39 +139,14 @@ def return_book(request, book_id):
         record.is_returned = True
         record.return_date = timezone.now()
         record.save()
-        return redirect('returns')  # <--- Now goes to "My Returns"
+        return redirect('returns')
     return render(request, 'books/returnbook.html', {'borrow_record': record})
 
 def returns(request):
-    # Filter out only the user’s returned records
     returned_records = BorrowRecord.objects.filter(user=request.user, is_returned=True)
     return render(request, 'returns.html', {'returned_records': returned_records})
 
-# def returns_page(request):
-#     # If you need to pass data to the template, gather it here
-#     # e.g., returned_books = BorrowRecord.objects.filter(is_returned=True)
-#     # context = {'returned_books': returned_books}
-#     # return render(request, 'returns.html', context)
-#
-#     return render(request, 'returns.html')  # or use a context if needed
-# @login_required
-# def return_book(request, book_id):
-#     borrow_record = get_object_or_404(BorrowRecord, book_id=book_id, user=request.user, is_returned=False)
-#
-#     if request.method == "POST":
-#         borrow_record.is_returned = True
-#         borrow_record.return_date = timezone.now()
-#         borrow_record.save()
-#
-#         # Mark book as available
-#         book = borrow_record.book
-#         book.available = True
-#         book.save()
-#
-#         messages.success(request, "Book returned successfully!")
-#         return redirect('my_bag')
-#
-#     return render(request, 'return_book.html', {'borrow_record': borrow_record})
+
 
 def book_list(request):
     query = request.GET.get('q', '')
@@ -207,7 +182,7 @@ def borrow_record_list(request):
 
     return render(request, 'borrow_record_list.html', {'page_obj': page_obj, 'query': query})
 
-# Add Book View
+
 def add_book(request):
     if request.method == "POST":
         title = request.POST['title']

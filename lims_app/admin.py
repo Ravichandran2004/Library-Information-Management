@@ -3,6 +3,12 @@ from.models import *
 from .models import Book
 from .models import BorrowRecord
 
+for model in [Reader, Book, BorrowRecord]:
+    try:
+        admin.site.unregister(model)
+    except admin.sites.NotRegistered:
+        pass
+
 # Register your models here.
 admin.site.register(Reader)
 admin.site.register(Book)
