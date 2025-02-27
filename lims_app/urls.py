@@ -3,6 +3,8 @@ from . import views
 from .views import book_list, book_detail, return_book
 from .views import borrow_record_list
 from lims_app import views
+from graphene_django.views import GraphQLView
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     path('home/', views.home, name='home'), 
@@ -25,6 +27,7 @@ urlpatterns = [
     path('', views.book_list, name='book_list'),  # Example
     path('books/<int:book_id>/toggle_availability/', views.toggle_availability, name='toggle_availability'),
     path('returns/receipt/<int:record_id>/', views.receipt, name='receipt'),
+    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
 
 ]
 

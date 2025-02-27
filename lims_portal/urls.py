@@ -25,3 +25,5 @@ urlpatterns = [
 ]
 if settings.DEBUG:  # Only in development
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+    path('api/', include('api.urls')),
