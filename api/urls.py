@@ -1,17 +1,10 @@
-from django.urls import path
-from .views import (
-    ReaderListCreateView, ReaderDetailView,
-    BookListCreateView, BookDetailView,
-    BorrowRecordListCreateView, BorrowRecordDetailView
-)
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import APIRequestLogViewSet
+
+router = DefaultRouter()
+router.register(r'api-logs', APIRequestLogViewSet)
 
 urlpatterns = [
-    path('readers/', ReaderListCreateView.as_view(), name='reader-list'),
-    path('readers/<int:pk>/', ReaderDetailView.as_view(), name='reader-detail'),
-
-    path('books/', BookListCreateView.as_view(), name='book-list'),
-    path('books/<int:pk>/', BookDetailView.as_view(), name='book-detail'),
-
-    path('borrow-records/', BorrowRecordListCreateView.as_view(), name='borrow-list'),
-    path('borrow-records/<int:pk>/', BorrowRecordDetailView.as_view(), name='borrow-detail'),
+    path('', include(router.urls)),
 ]

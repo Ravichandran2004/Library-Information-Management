@@ -15,7 +15,13 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 import pandas as pd
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from django.contrib.auth.decorators import login_required
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 
 def home(request):
     return render(request, 'home.html',context={"current_tab":"home"})
@@ -165,9 +171,43 @@ def borrow_record_list(request):
     borrow_records = BorrowRecord.objects.all()
     return render(request, "books/borrow_record.html", {"borrow_records": borrow_records})
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])  # Requires authentication
 def my_bag(request):
-    borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
-    return render(request, 'books/mybag.html', {'borrow_records': borrow_records})
+    user = request.user
+    borrow_records = BorrowRecord.objects.filter(user=user, is_returned=False)
+
+    data = [
+        {"book": record.book.title, "borrowed_date": record.borrowed_date}
+        for record in borrow_records
+    ]
+    return Response({"my_bag": data})
+
+
+class MyBagView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can access
+
+    def get(self, request):
+        user = request.user
+        borrow_records = BorrowRecord.objects.filter(user=user, is_returned=False)
+
+        data = [
+            {"book": record.book.title, "borrowed_date": record.borrowed_date}
+            for record in borrow_records
+        ]
+        return Response({"my_bag": data})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])  # Requires authentication
+def my_bag_api(request):
+    return my_bag(request)  # Reuse the my_bag function to avoid redundancy
+
+
+
+# def my_bag(request):
+#     borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
+#     return render(request, 'books/mybag.html', {'borrow_records': borrow_records})
 
 def borrow_record_list(request):
     query = request.GET.get('q', '')

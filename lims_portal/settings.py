@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'api',
     'graphene_django',
 ]
@@ -54,12 +55,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'lims_portal.urls'
-# C:\Users\Ravi\Library information Management System\lims_portal\lims_app\templates\intex.html
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS':[os.path.join(BASE_DIR,'lims_app/templates')], 
+        'DIRS': [os.path.join(BASE_DIR, 'lims_app/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,13 +81,24 @@ WSGI_APPLICATION = 'lims_portal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'LIMS',
-        'USER':'postgres',
-        'PASSWORD' :'6369',
-        'HOST' : 'localhost',
+        'NAME': 'LIMS',  # Change this to your new DB name
+        'USER': 'postgres',
+        'PASSWORD': '6369',
+        'HOST': 'localhost',
     }
 }
 
+
+# Authentication & Permissions for DRF
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Require authentication for API access
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',  # Login-based authentication
+        'rest_framework.authentication.TokenAuthentication',  # Token-based authentication
+    ],
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -125,7 +136,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
@@ -137,6 +147,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static_cdn')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# GraphQL settings
 GRAPHENE = {
     'SCHEMA': 'lims_app.schema.schema'  # Adjust the path as necessary
 }

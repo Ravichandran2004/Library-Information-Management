@@ -1,10 +1,8 @@
 from django.urls import path
-from . import views
-from .views import book_list, book_detail, return_book
-from .views import borrow_record_list
-from lims_app import views
-from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
+from graphene_django.views import GraphQLView
+from lims_app import views
+from .views import MyBagView, my_bag_api
 
 urlpatterns = [
     path('home/', views.home, name='home'), 
@@ -20,6 +18,8 @@ urlpatterns = [
     path('books/<int:book_id>/', views.book_detail, name='book_detail'),
     path('borrow/<int:book_id>/', views.borrow_record, name='borrow_record'),
     path('mybag/', views.my_bag, name='my_bag'),
+    path('my bag-api/', MyBagView.as_view(), name='my_bag_api'),  # New API view
+    path('my bag-api/', my_bag_api, name='my_bag_api'),
     path('return-book/<int:book_id>/', views.return_book, name='return_book'),
     path('returns/', views.returns, name='returns'),
     path('add/', views.add_book, name='add_book'),
