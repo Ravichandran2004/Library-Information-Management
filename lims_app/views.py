@@ -171,9 +171,17 @@ def borrow_record_list(request):
     borrow_records = BorrowRecord.objects.all()
     return render(request, "books/borrow_record.html", {"borrow_records": borrow_records})
 
+def my_bag(request):
+    if not request.user.is_authenticated:
+        return render(request, 'books/login.html')  # Redirect to login if unauthenticated
+
+    borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
+    return render(request, 'books/mybag.html', {'borrow_records': borrow_records})
+
+# Function-based API view
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])  # Requires authentication
-def my_bag(request):
+def my_bag_api(request):
     user = request.user
     borrow_records = BorrowRecord.objects.filter(user=user, is_returned=False)
 
@@ -183,27 +191,12 @@ def my_bag(request):
     ]
     return Response({"my_bag": data})
 
-
+# Class-based API view
 class MyBagView(APIView):
     permission_classes = [IsAuthenticated]  # Ensures only authenticated users can access
 
     def get(self, request):
-        user = request.user
-        borrow_records = BorrowRecord.objects.filter(user=user, is_returned=False)
-
-        data = [
-            {"book": record.book.title, "borrowed_date": record.borrowed_date}
-            for record in borrow_records
-        ]
-        return Response({"my_bag": data})
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])  # Requires authentication
-def my_bag_api(request):
-    return my_bag(request)  # Reuse the my_bag function to avoid redundancy
-
-
+        return my_bag_api(request)  # Reuse function-based API logic
 
 # def my_bag(request):
 #     borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
