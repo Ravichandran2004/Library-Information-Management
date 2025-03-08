@@ -8,7 +8,7 @@ from django.db import connection
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Book, BorrowRecord
-from .forms import BorrowBookForm
+from .forms import BorrowBookForm, StaffRegistrationForm
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib import messages
@@ -22,6 +22,9 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
+from django.shortcuts import render
+from .models import log_api_request
+
 
 def home(request):
     return render(request, 'home.html',context={"current_tab":"home"})
@@ -197,6 +200,9 @@ class MyBagView(APIView):
 
     def get(self, request):
         return my_bag_api(request)  # Reuse function-based API logic
+
+
+from django.shortcuts import render
 
 # def my_bag(request):
 #     borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
@@ -421,3 +427,18 @@ def register_staff(request):
     else:
         form = StaffRegistrationForm()
     return render(request, 'register_staff.html', {'form': form})
+
+
+from django.shortcuts import render
+from .models import log_api_request  # ✅ Ensure this import works
+
+
+from django.shortcuts import render
+
+def api_home(request):
+    """
+    API Home Page - Displays only the API home without showing specific endpoints.
+    """
+    response = render(request, "api_home.html")  # Render the HTML page
+    return response  # Corrected return statement
+
