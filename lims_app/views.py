@@ -23,53 +23,69 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from django.shortcuts import render
-from .models import log_api_request
+# from .models import log_api_request
 
 
 def home(request):
     return render(request, 'home.html',context={"current_tab":"home"})
 
-def readers(request):
-    return render(request, 'readers.html',context={"current_tab":"readers"})
-
 def shopping(request):
     return HttpResponse("Welcome to Shopping")
 
-def save_student(request):
-    student_name =request.POST['student_name']
-    return render(request, 'Welcome.html',context={'student_name':student_name})
+def readers(request):
+    return render(request, 'readers.html',context={"current_tab":"readers"})
+
 
 def readers_tab(request):
-    if request.method =="GET":
+    if request.method == "GET":
         readers = Reader.objects.all()
-    # This line of code is rendering the 'readers.html' template with the context data provided. The
-    # template will be displayed to the user with the current tab set to "readers" and the list of
-    # readers passed in the context variable 'readers'. This allows the template to access and display
-    # the list of readers in the HTML page.
-        print("Readers",readers)
-        return render(request, "readers.html",
-                      context={"current_tab":"readers",
-                               "readers":readers})
+        print("Readers:", readers)
+        return render(request, "readers.html", context={"current_tab": "readers", "readers": readers})
 
-    else:
-        query = request.POST.get('query', '')
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM lims_app_reader WHERE reader_name LIKE %s", [f"%{query}%"])
-            rows = cursor.fetchall()
-            readers = []
-            for row in rows:
-                reader = Reader(id=row[0],
-                                reference_id=row[1],
-                                reader_name=row[2],
-                                reader_contact=row[3],
-                                reader_address=row[4],
-                                active=row[5]
-                            )
-                readers.append(reader)
-                return render(request, "readers.html", context={"current_tab": "readers", "readers": readers, "query": query})
-                return render(request, "readers.html",
-                      context={"current_tab":"readers",
-                               "readers":readers})
+    query = request.POST.get('query', '')
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM lims_app_reader WHERE reader_name LIKE %s", [f"%{query}%"])
+        rows = cursor.fetchall()
+
+    readers = [
+        Reader(id=row[0], reference_id=row[1], reader_name=row[2], reader_contact=row[3],
+               reader_address=row[4], active=row[5])
+        for row in rows
+    ]
+
+    return render(request, "readers.html", context={"current_tab": "readers", "readers": readers, "query": query})
+
+# def readers_tab(request):
+#     if request.method =="GET":
+#         readers = Reader.objects.all()
+#     # This line of code is rendering the 'readers.html' template with the context data provided. The
+#     # template will be displayed to the user with the current tab set to "readers" and the list of
+#     # readers passed in the context variable 'readers'. This allows the template to access and display
+#     # the list of readers in the HTML page.
+#         print("Readers",readers)
+#         return render(request, "readers.html",
+#                       context={"current_tab":"readers",
+#                                "readers":readers})
+#
+#     else:
+#         query = request.POST.get('query', '')
+#         with connection.cursor() as cursor:
+#             cursor.execute("SELECT * FROM lims_app_reader WHERE reader_name LIKE %s", [f"%{query}%"])
+#             rows = cursor.fetchall()
+#             readers = []
+#             for row in rows:
+#                 reader = Reader(id=row[0],
+#                                 reference_id=row[1],
+#                                 reader_name=row[2],
+#                                 reader_contact=row[3],
+#                                 reader_address=row[4],
+#                                 active=row[5]
+#                             )
+#                 readers.append(reader)
+#                 return render(request, "readers.html", context={"current_tab": "readers", "readers": readers, "query": query})
+#                 return render(request, "readers.html",
+#                       context={"current_tab":"readers",
+#                                "readers":readers})
 
 def save_reader(request):
     if request.method == "POST":
@@ -89,7 +105,7 @@ def save_reader(request):
             active=True  # or however you set default
         )
 
-        return redirect('/readers/')  # or wherever your readers list is
+        return redirect('/readers/')
 
     # If GET, just show the page or redirect
     return render(request, 'readers.html')
@@ -101,61 +117,10 @@ def search_readers(request):
     else:
         readers = Reader.objects.all()
     return render(request, 'readers.html', {'readers': readers, 'query': query})
-# def save_reader(request):
-#     reader_item= Reader(reference_id=request.POST['reader_ref_id'],
-#                         reader_name = request.POST['reader_name'],
-#                         reader_contact = request.POST['reader_contact'],
-#                         reader_address = request.POST['reader_Address'],
-#                         active=True
-#
-#     )
-#     reader_item.save()
-#     return redirect('/readers')
 
-
-
-
-@login_required
-def borrow_record(request, book_id):
-    book = get_object_or_404(Book, id=book_id)
-    user = request.user
-
-    if BorrowRecord.objects.filter(user=user, book=book, is_returned=False).exists():
-        messages.error(request, "You have already borrowed this book.")
-        return redirect('book_detail', book_id=book.id)
-
-    if not book.available:
-        messages.error(request, "This book is currently unavailable.")
-        return redirect('book_list')
-
-    borrow = BorrowRecord.objects.create(
-        user=user,
-        book=book,
-        borrowed_date=timezone.now(),
-        return_date=timezone.now() + timezone.timedelta(days=7),  # 7-day borrow period
-        is_returned=False
-    )
-
-    book.available = False
-    book.save()
-
-    messages.success(request, "Book borrowed successfully!")
-    return redirect('book_list')
-
-def return_book(request, book_id):
-    record = get_object_or_404(BorrowRecord, pk=book_id)
-    if request.method == 'POST':
-        record.is_returned = True
-        record.return_date = timezone.now()
-        record.save()
-        return redirect('returns')
-    return render(request, 'books/returnbook.html', {'borrow_record': record})
-
-def returns(request):
-    returned_records = BorrowRecord.objects.filter(user=request.user, is_returned=True)
-    return render(request, 'returns.html', {'returned_records': returned_records})
-
-
+def save_student(request):
+    student_name =request.POST['student_name']
+    return render(request, 'Welcome.html',context={'student_name':student_name})
 
 def book_list(request):
     query = request.GET.get('q', '')
@@ -165,62 +130,9 @@ def book_list(request):
 
     return render(request, 'books/book_list.html', {'books': books, 'query': query})
 
-
 def book_detail(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     return render(request, 'books/book_detail.html', {'book': book})
-
-def borrow_record_list(request):
-    borrow_records = BorrowRecord.objects.all()
-    return render(request, "books/borrow_record.html", {"borrow_records": borrow_records})
-
-def my_bag(request):
-    if not request.user.is_authenticated:
-        return render(request, 'books/login.html')  # Redirect to login if unauthenticated
-
-    borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
-    return render(request, 'books/mybag.html', {'borrow_records': borrow_records})
-
-# Function-based API view
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])  # Requires authentication
-def my_bag_api(request):
-    user = request.user
-    borrow_records = BorrowRecord.objects.filter(user=user, is_returned=False)
-
-    data = [
-        {"book": record.book.title, "borrowed_date": record.borrowed_date}
-        for record in borrow_records
-    ]
-    return Response({"my_bag": data})
-
-# Class-based API view
-class MyBagView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can access
-
-    def get(self, request):
-        return my_bag_api(request)  # Reuse function-based API logic
-
-
-from django.shortcuts import render
-
-# def my_bag(request):
-#     borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
-#     return render(request, 'books/mybag.html', {'borrow_records': borrow_records})
-
-def borrow_record_list(request):
-    query = request.GET.get('q', '')
-    records = BorrowRecord.objects.all()
-
-    if query:
-        records = records.filter(book__title__icontains=query)  # Example search filter
-
-    paginator = Paginator(records, 10)  # Show 10 records per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'borrow_record_list.html', {'page_obj': page_obj, 'query': query})
-
 
 def add_book(request):
     if request.method == "POST":
@@ -241,79 +153,78 @@ def add_book(request):
             available=available
         )
 
-        return redirect('book_list')  # Redirect to book list after adding
+        return redirect('book_list')
     return render(request, 'add_book.html')
 
+# def add_book(request):
+#     if request.method == "POST":
+#         # Handle form data...
+#         # ...
+#         return redirect('book_list')
+#
+#     # Render the template in the subfolder "books"
+#     return render(request, 'books/add_book.html')
+
+
+# def add_book(request):
+#     if request.method == "POST":
+#         title = request.POST.get("title")
+#         author = request.POST.get("author")
+#         isbn = request.POST.get("isbn")
+#         price_5_days = request.POST.get("price_5_days")
+#         daily_rate = request.POST.get("daily_rate")
+#         available = request.POST.get("available") == "True"
+#
+#         # Create new book entry
+#         Book.objects.create(
+#             title=title,
+#             author=author,
+#             isbn=isbn,
+#             price_5_days=price_5_days,
+#             daily_rate=daily_rate,
+#             available=available
+#         )
+#
+#         return JsonResponse({"message": "Book added successfully!"})  # Send response to AJAX
+#
+#     return render(request, "books/add_book.html")  # This will rarely be used since the modal is in book_list.html
+#
+
 # Upload Books View
-def upload_book(request):
-    if request.method == "POST" and request.FILES.get('book_file'):
-        book_file = request.FILES['book_file']
-
-        if book_file.name.endswith('.csv'):
-            df = pd.read_csv(book_file)
-        elif book_file.name.endswith(('.xlsx', '.xls')):
-            df = pd.read_excel(book_file)
-        else:
-            return render(request, 'upload_book.html', {'error': 'Invalid file format'})
-
-        # Insert data into database
-        for _, row in df.iterrows():
-            Book.objects.create(
-                title=row['title'],
-                author=row['author'],
-                isbn=row['isbn'],
-                price_5_days=row['price_5_days'],
-                daily_rate=row['daily_rate'],
-                available=row['available']
-            )
-
-        return redirect('book_list')  # Redirect after upload
-    return render(request, 'upload_book.html')
-
-def add_book(request):
-    if request.method == "POST":
-        # Handle form data...
-        # ...
-        return redirect('book_list')
-
-    # Render the template in the subfolder "books"
-    return render(request, 'books/add_book.html')
+# def upload_book(request):
+#     if request.method == "POST" and request.FILES.get('book_file'):
+#         book_file = request.FILES['book_file']
+#
+#         if book_file.name.endswith('.csv'):
+#             df = pd.read_csv(book_file)
+#         elif book_file.name.endswith(('.xlsx', '.xls')):
+#             df = pd.read_excel(book_file)
+#         else:
+#             return render(request, 'upload_book.html', {'error': 'Invalid file format'})
+#
+#         # Insert data into database
+#         for _, row in df.iterrows():
+#             Book.objects.create(
+#                 title=row['title'],
+#                 author=row['author'],
+#                 isbn=row['isbn'],
+#                 price_5_days=row['price_5_days'],
+#                 daily_rate=row['daily_rate'],
+#                 available=row['available']
+#             )
+#
+#         return redirect('book_list')  # Redirect after upload
+#     return render(request, 'upload_book.html')
 
 
-
-
-def add_book(request):
-    if request.method == "POST":
-        title = request.POST.get("title")
-        author = request.POST.get("author")
-        isbn = request.POST.get("isbn")
-        price_5_days = request.POST.get("price_5_days")
-        daily_rate = request.POST.get("daily_rate")
-        available = request.POST.get("available") == "True"
-
-        # Create new book entry
-        Book.objects.create(
-            title=title,
-            author=author,
-            isbn=isbn,
-            price_5_days=price_5_days,
-            daily_rate=daily_rate,
-            available=available
-        )
-
-        return JsonResponse({"message": "Book added successfully!"})  # Send response to AJAX
-
-    return render(request, "books/add_book.html")  # This will rarely be used since the modal is in book_list.html
-
-
-def upload_book(request):
-    if request.method == 'POST':
-        # process your file upload
-        ...
-        return redirect('book_list')
-
-    # IMPORTANT: If it's in 'templates/books/', you must prefix with 'books/'
-    return render(request, 'books/upload_book.html')
+# def upload_book(request):
+#     if request.method == 'POST':
+#         # process your file upload
+#         ...
+#         return redirect('book_list')
+#
+#     # IMPORTANT: If it's in 'templates/books/', you must prefix with 'books/'
+#     return render(request, 'books/upload_book.html')
 
 def upload_book(request: HttpRequest) -> HttpResponse:
     """
@@ -324,7 +235,7 @@ def upload_book(request: HttpRequest) -> HttpResponse:
     if request.method == "POST" and request.FILES.get('book_file'):
         book_file = request.FILES['book_file']
 
-        # 1. Detect file type
+
         if book_file.name.endswith('.csv'):
             df = pd.read_csv(book_file)
         elif book_file.name.endswith(('.xlsx', '.xls')):
@@ -334,21 +245,20 @@ def upload_book(request: HttpRequest) -> HttpResponse:
             return redirect('upload_book')
 
         # 2. Print columns for debugging
-        # Convert columns to lowercase for easier comparison
+
         actual_columns = set(col.lower() for col in df.columns)
         print("DataFrame columns (lowercased):", actual_columns)
 
         # 3. Define the expected columns (lowercase)
         expected_columns = {'title', 'author', 'isbn', 'price_5_days', 'daily_rate', 'available'}
 
-        # 4. Check if the file has all the needed columns
+
         missing_cols = expected_columns - actual_columns
         if missing_cols:
             messages.error(request, f"Missing columns in the file: {', '.join(missing_cols)}")
             return redirect('upload_book')
 
-        # 5. (Optional) Rename columns to match exactly your model fields
-        #    Only rename columns that exist. Use `errors='ignore'` to skip missing.
+
         df.rename(columns={
             'Title': 'title',
             'Author': 'author',
@@ -358,7 +268,7 @@ def upload_book(request: HttpRequest) -> HttpResponse:
             'Available': 'available'
         }, inplace=True, errors='ignore')
 
-        # 6. Insert data into the database
+
         uploaded_count = 0
         for _, row in df.iterrows():
             try:
@@ -391,25 +301,96 @@ def toggle_availability(request, book_id):
         book.save()
     return redirect('book_list')
 
-def book_list(request):
-    # 1. Fetch all (or filtered) books
-    query = request.GET.get('q', '')
-    if query:
-        # Example filter if you already had search logic
-        books_list = Book.objects.filter(title__icontains=query)
-    else:
-        books_list = Book.objects.all()
-
-    # 2. Use Paginator: 10 books per page (change 10 to whatever page size you want)
+def book_list_view(request):
+    books_list = Book.objects.all().order_by("id")
     paginator = Paginator(books_list, 10)
+    page_number = request.GET.get("page")
+    books = paginator.get_page(page_number)
+    return render(request, "books_list.html", {"books": books})
+
+def my_bag(request):
+    if not request.user.is_authenticated:
+        return render(request, 'books/login.html')
+
+    borrow_records = BorrowRecord.objects.filter(user=request.user, is_returned=False)
+    return render(request, 'books/mybag.html', {'borrow_records': borrow_records})
+
+# Function-based API view
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def my_bag_api(request):
+    user = request.user
+    borrow_records = BorrowRecord.objects.filter(user=user, is_returned=False)
+
+    data = [
+        {"book": record.book.title, "borrowed_date": record.borrowed_date}
+        for record in borrow_records
+    ]
+    return Response({"my_bag": data})
+
+# Class-based API view
+class MyBagView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return my_bag_api(request)
+
+@login_required
+def borrow_record(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    user = request.user
+
+    if BorrowRecord.objects.filter(user=user, book=book, is_returned=False).exists():
+        messages.error(request, "You have already borrowed this book.")
+        return redirect('book_detail', book_id=book.id)
+
+    if not book.available:
+        messages.error(request, "This book is currently unavailable.")
+        return redirect('book_list')
+
+    borrow = BorrowRecord.objects.create(
+        user=user,
+        book=book,
+        borrowed_date=timezone.now(),
+        return_date=timezone.now() + timezone.timedelta(days=7),
+        is_returned=False
+    )
+
+    book.available = False
+    book.save()
+
+    messages.success(request, "Book borrowed successfully!")
+    return redirect('book_list')
+
+def borrow_record_list(request):
+    query = request.GET.get('q', '')
+    records = BorrowRecord.objects.all()
+
+    if query:
+        records = records.filter(book__title__icontains=query)
+
+    paginator = Paginator(records, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # 3. Pass page_obj to the template as "books"
-    return render(request, 'books/book_list.html', {
-        'books': page_obj,
-        'query': query,  # so your search box still works
-    })
+    return render(request, 'borrow_record_list.html', {'page_obj': page_obj, 'query': query})
+
+def borrow_record_list(request):
+    borrow_records = BorrowRecord.objects.all()
+    return render(request, "books/borrow_record.html", {"borrow_records": borrow_records})
+
+def returns(request):
+    returned_records = BorrowRecord.objects.filter(user=request.user, is_returned=True)
+    return render(request, 'returns.html', {'returned_records': returned_records})
+
+def return_book(request, book_id):
+    record = get_object_or_404(BorrowRecord, pk=book_id)
+    if request.method == 'POST':
+        record.is_returned = True
+        record.return_date = timezone.now()
+        record.save()
+        return redirect('returns')
+    return render(request, 'books/returnbook.html', {'borrow_record': record})
 
 def receipt(request, record_id):
     record = get_object_or_404(BorrowRecord, pk=record_id)
@@ -422,23 +403,15 @@ def register_staff(request):
     if request.method == 'POST':
         form = StaffRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()  # creates a staff user
-            return redirect('somewhere')  # e.g. staff list or login
+            form.save()
+            return redirect('somewhere')
     else:
         form = StaffRegistrationForm()
     return render(request, 'register_staff.html', {'form': form})
-
-
-from django.shortcuts import render
-from .models import log_api_request  # ✅ Ensure this import works
-
-
-from django.shortcuts import render
 
 def api_home(request):
     """
     API Home Page - Displays only the API home without showing specific endpoints.
     """
     response = render(request, "api_home.html")  # Render the HTML page
-    return response  # Corrected return statement
-
+    return response

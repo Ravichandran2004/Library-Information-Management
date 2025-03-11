@@ -1,4 +1,4 @@
 from django.contrib import admin
-# from .models import APIRequestLog
-#
-# admin.site.register(APIRequestLog)
+from lims_app.models import APIRequestLog  # ✅ FIXED
+
+admin.site.register(APIRequestLog)

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import Book
+from .models import Book  # ⚠️ This should be `from lims_app.models import Book`
 
 class BookModelTest(TestCase):
     def test_create_book(self):
