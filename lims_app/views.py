@@ -1,12 +1,10 @@
-from django.shortcuts import render
+# from django.shortcuts import render
 from django.contrib import admin
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render,redirect
-from.models import Reader
 from.models import *
 from django.db import connection
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Book, BorrowRecord
 from .forms import BorrowBookForm, StaffRegistrationForm
 from django.db.models import Q
@@ -22,9 +20,13 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
-from django.shortcuts import render
+# from django.shortcuts import render
+from .models import Book
 # from .models import log_api_request
-
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from .forms import BorrowBookForm
 
 def home(request):
     return render(request, 'home.html',context={"current_tab":"home"})
@@ -102,7 +104,7 @@ def save_reader(request):
             reader_contact=reader_contact,
             reference_id=reader_ref_id,
             reader_address=reader_address,
-            active=True  # or however you set default
+            active=True
         )
 
         return redirect('/readers/')
@@ -187,8 +189,7 @@ def add_book(request):
 #
 #         return JsonResponse({"message": "Book added successfully!"})  # Send response to AJAX
 #
-#     return render(request, "books/add_book.html")  # This will rarely be used since the modal is in book_list.html
-#
+#     return render(request, "books/add_book.html")
 
 # Upload Books View
 # def upload_book(request):
@@ -336,35 +337,55 @@ class MyBagView(APIView):
         return my_bag_api(request)
 
 @login_required
-def borrow_record(request, book_id):
-    book = get_object_or_404(Book, id=book_id)
-    user = request.user
+def borrow_book(request):
+    """
+    Handles the book borrowing process.
+    Ensures that a user cannot borrow the same book twice if not returned.
+    Updates book availability accordingly.
+    """
+    if request.method == 'POST':
+        form = BorrowBookForm(request.POST)
+        if form.is_valid():
+            book = form.cleaned_data['book']
 
-    if BorrowRecord.objects.filter(user=user, book=book, is_returned=False).exists():
-        messages.error(request, "You have already borrowed this book.")
-        return redirect('book_detail', book_id=book.id)
+            # Check if user has already borrowed this book
+            if BorrowRecord.objects.filter(user=request.user, book=book, is_returned=False).exists():
+                messages.error(request, "You have already borrowed this book.")
+                return redirect('book_detail', book_id=book.id)
 
-    if not book.available:
-        messages.error(request, "This book is currently unavailable.")
-        return redirect('book_list')
+            if not book.available:
+                messages.error(request, "This book is currently unavailable.")
+                return redirect('book_list')
 
-    borrow = BorrowRecord.objects.create(
-        user=user,
-        book=book,
-        borrowed_date=timezone.now(),
-        return_date=timezone.now() + timezone.timedelta(days=7),
-        is_returned=False
-    )
+            # Create borrow record
+            borrow_record = BorrowRecord.objects.create(
+                user=request.user,
+                book=book,
+                borrowed_date=timezone.now(),
+                return_date=timezone.now() + timezone.timedelta(days=7),
+                is_returned=False
+            )
 
-    book.available = False
-    book.save()
+            # Mark book as unavailable
+            book.available = False
+            book.save()
 
-    messages.success(request, "Book borrowed successfully!")
-    return redirect('book_list')
+            messages.success(request, "Book borrowed successfully!")
+            return redirect('borrow_record_list')
+    else:
+        form = BorrowBookForm()
 
+    return render(request, 'borrow_book.html', {'form': form})
+
+
+@login_required
 def borrow_record_list(request):
+    """
+    Displays a list of borrow records for the logged-in user.
+    Supports search functionality and pagination.
+    """
     query = request.GET.get('q', '')
-    records = BorrowRecord.objects.all()
+    records = BorrowRecord.objects.filter(user=request.user).order_by('-borrowed_date')
 
     if query:
         records = records.filter(book__title__icontains=query)
@@ -376,12 +397,75 @@ def borrow_record_list(request):
     return render(request, 'borrow_record_list.html', {'page_obj': page_obj, 'query': query})
 
 def borrow_record_list(request):
-    borrow_records = BorrowRecord.objects.all()
-    return render(request, "books/borrow_record.html", {"borrow_records": borrow_records})
+    borrow_records = BorrowRecord.objects.all().order_by('-borrow_date')  # Fetch history
+    return render(request, 'borrow_history.html', {'borrow_records': borrow_records})
 
+@login_required
+def borrow_record(request, book_id):
+    """
+    Handles borrowing a book by ID.
+    Ensures the book is available and the user has not borrowed it already.
+    """
+    book = get_object_or_404(Book, id=book_id)
+    user = request.user
+
+    if BorrowRecord.objects.filter(user=user, book=book, is_returned=False).exists():
+        messages.error(request, "You have already borrowed this book.")
+        return redirect('book_detail', book_id=book.id)
+
+    if not book.available:
+        messages.error(request, "This book is currently unavailable.")
+        return redirect('book_list')
+
+    # Create borrow record
+    borrow = BorrowRecord.objects.create(
+        user=user,
+        book=book,
+        borrowed_date=timezone.now(),
+        return_date=timezone.now() + timezone.timedelta(days=7),
+        is_returned=False
+    )
+
+
+    book.available = False
+    book.save()
+
+    messages.success(request, "Book borrowed successfully!")
+    return redirect('book_list')
+
+def borrow_history(request, book_id):
+    history_records = BorrowRecord.objects.filter(book_id=book_id).select_related('book', 'user')
+    print(history_records)
+    return render(request, 'books/borrow_history.html', {"history_records": history_records})
+
+
+@login_required
+def borrow_records_all(request):
+    """
+    Admin/staff view for listing all borrow records.
+    Supports search functionality and pagination.
+    """
+    query = request.GET.get('q', '')
+    records = BorrowRecord.objects.all()
+
+    if query:
+        records = records.filter(book__title__icontains=query)
+
+    paginator = Paginator(records, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "books/borrow_record.html", {"page_obj": page_obj, "query": query})
+
+
+@login_required
 def returns(request):
+    """
+    Displays a list of books returned by the logged-in user.
+    """
     returned_records = BorrowRecord.objects.filter(user=request.user, is_returned=True)
     return render(request, 'returns.html', {'returned_records': returned_records})
+
 
 def return_book(request, book_id):
     record = get_object_or_404(BorrowRecord, pk=book_id)
@@ -399,6 +483,10 @@ def receipt(request, record_id):
 
     return render(request, 'receipt.html', {'record': record})
 
+def borrow_book(request):
+    books = Book.objects.all()  # Fetch all books
+    return render(request, 'books/book_list.html', {'books': books})
+
 def register_staff(request):
     if request.method == 'POST':
         form = StaffRegistrationForm(request.POST)
@@ -415,3 +503,18 @@ def api_home(request):
     """
     response = render(request, "api_home.html")  # Render the HTML page
     return response
+
+
+def user_login(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect("borrow_history")
+        else:
+            return render(request, "login.html", {"error": "Invalid credentials"})
+
+    return render(request, "login.html")

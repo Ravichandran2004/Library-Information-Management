@@ -1,53 +1,115 @@
-# lims_app/schema.py
-
 import graphene
-from graphene_django import DjangoObjectType
-from .models import Reader, Book, BorrowRecord
+from graphene_django.types import DjangoObjectType
 from django.contrib.auth.models import User
+from .models import Reader, Book, BorrowRecord
+from datetime import datetime, timedelta
 
-# Define GraphQL types for each model
+
 class ReaderType(DjangoObjectType):
     class Meta:
         model = Reader
-        fields = ('id', 'reference_id', 'reader_name', 'reader_contact', 'reader_address', 'active')
 
 class BookType(DjangoObjectType):
     class Meta:
         model = Book
-        fields = ('id', 'title', 'author', 'isbn', 'price_5_days', 'daily_rate', 'available')
 
 class BorrowRecordType(DjangoObjectType):
     class Meta:
         model = BorrowRecord
-        fields = ('id', 'user', 'book', 'borrowed_date', 'return_date', 'is_returned')
 
 class UserType(DjangoObjectType):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
 
 
 
-# Define Query class
 class Query(graphene.ObjectType):
     all_readers = graphene.List(ReaderType)
     all_books = graphene.List(BookType)
     all_borrow_records = graphene.List(BorrowRecordType)
     all_users = graphene.List(UserType)
+    available_books = graphene.List(BookType)
 
-    def resolve_all_readers(root, info):
+    def resolve_all_readers(self, info):
         return Reader.objects.all()
 
-    def resolve_all_books(root, info):
+    def resolve_all_books(self, info):
         return Book.objects.all()
 
-    def resolve_all_borrow_records(root, info):
+    def resolve_all_borrow_records(self, info):
         return BorrowRecord.objects.all()
 
-    def resolve_all_users(root, info):
+    def resolve_all_users(self, info):
         return User.objects.all()
 
-# Define Mutations for creating records
+    def resolve_available_books(self, info):
+        return Book.objects.filter(available=True)
+
+
+
+class BorrowBookMutation(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.Int(required=True)
+        book_id = graphene.Int(required=True)
+        days = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+
+    def mutate(self, info, user_id, book_id, days):
+        try:
+            user = User.objects.get(id=user_id)
+            book = Book.objects.get(id=book_id)
+
+            if not book.available:
+                return BorrowBookMutation(success=False, message="Book is currently unavailable.")
+
+            # Check if user already borrowed the book
+            if BorrowRecord.objects.filter(user=user, book=book, is_returned=False).exists():
+                return BorrowBookMutation(success=False, message="You have already borrowed this book.")
+
+            return_date = datetime.now() + timedelta(days=days)
+            BorrowRecord.objects.create(user=user, book=book, return_date=return_date, is_returned=False)
+
+            # Mark book as unavailable
+            book.available = False
+            book.save()
+
+            return BorrowBookMutation(success=True, message="Book borrowed successfully.")
+        except User.DoesNotExist:
+            return BorrowBookMutation(success=False, message="User not found.")
+        except Book.DoesNotExist:
+            return BorrowBookMutation(success=False, message="Book not found.")
+        except Exception as e:
+            return BorrowBookMutation(success=False, message=str(e))
+
+
+
+class ReturnBookMutation(graphene.Mutation):
+    class Arguments:
+        borrow_record_id = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+
+    def mutate(self, info, borrow_record_id):
+        try:
+            borrow_record = BorrowRecord.objects.get(id=borrow_record_id, is_returned=False)
+            borrow_record.is_returned = True
+            borrow_record.save()
+
+            # Mark book as available again
+            borrow_record.book.available = True
+            borrow_record.book.save()
+
+            return ReturnBookMutation(success=True, message="Book returned successfully.")
+        except BorrowRecord.DoesNotExist:
+            return ReturnBookMutation(success=False, message="Borrow record not found or already returned.")
+        except Exception as e:
+            return ReturnBookMutation(success=False, message=str(e))
+
+
+
 class CreateReader(graphene.Mutation):
     class Arguments:
         reference_id = graphene.String(required=True)
@@ -68,6 +130,7 @@ class CreateReader(graphene.Mutation):
         )
         reader.save()
         return CreateReader(reader=reader)
+
 
 class CreateBook(graphene.Mutation):
     class Arguments:
@@ -92,6 +155,7 @@ class CreateBook(graphene.Mutation):
         book.save()
         return CreateBook(book=book)
 
+
 class CreateBorrowRecord(graphene.Mutation):
     class Arguments:
         user_id = graphene.ID(required=True)
@@ -103,6 +167,10 @@ class CreateBorrowRecord(graphene.Mutation):
     def mutate(self, info, user_id, book_id, return_date=None):
         user = User.objects.get(pk=user_id)
         book = Book.objects.get(pk=book_id)
+
+        if not book.available:
+            raise Exception("Book is not available.")
+
         borrow_record = BorrowRecord(
             user=user,
             book=book,
@@ -110,13 +178,20 @@ class CreateBorrowRecord(graphene.Mutation):
             is_returned=False
         )
         borrow_record.save()
+
+        book.available = False
+        book.save()
+
         return CreateBorrowRecord(borrow_record=borrow_record)
 
-# Define the Mutation class
+
 class Mutation(graphene.ObjectType):
     create_reader = CreateReader.Field()
     create_book = CreateBook.Field()
     create_borrow_record = CreateBorrowRecord.Field()
+    borrow_book = BorrowBookMutation.Field()
+    return_book = ReturnBookMutation.Field()
 
-# Create the schema
+
+
 schema = graphene.Schema(query=Query, mutation=Mutation)

@@ -2,10 +2,30 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="text-center">Borrow Records</h2>
+
+    <!-- Borrow Book Form -->
+    <div class="mb-4">
+        <form method="POST" action="{% url 'borrow_book' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="book">Select Book to Borrow:</label>
+                <select name="book" class="form-control">
+                    {% for book in available_books %}
+                        <option value="{{ book.id }}">{{ book.title }} by {{ book.author }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Borrow</button>
+        </form>
+    </div>
+
+    <!-- Search Form -->
     <form method="GET" action="{% url 'borrow_record_list' %}" class="form-inline my-2 my-lg-0">
         <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="q" value="{{ query }}">
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
     </form>
+
+    <!-- Borrow Records Table -->
     <table class="table table-striped mt-3">
         <thead>
             <tr>
@@ -36,39 +56,36 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pagination -->
     <div class="pagination mt-3">
-    <nav>
-        <ul class="pagination">
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1">First</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                </li>
-            {% endif %}
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
 
-            <li class="page-item active">
-                <span class="page-link">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-                </span>
-            </li>
-
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
                 </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
-</div>
 
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
 </div>
 {% endblock %}
-
-
-
-

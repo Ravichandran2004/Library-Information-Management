@@ -4,6 +4,7 @@ from graphene_django.views import GraphQLView
 from lims_app import views
 from .views import my_bag, MyBagView, my_bag_api
 from .views import api_home
+from .views import user_login, borrow_book, borrow_record_list
 
 urlpatterns = [
     path('home/', views.home, name='home'), 
@@ -30,6 +31,9 @@ urlpatterns = [
     path("api/", api_home, name="api_home"),
     path('api/mybag/', my_bag_api, name='my_bag_api'),  # Function-based API endpoint
     path('api/mybag-view/', MyBagView.as_view(), name='my_bag_view'),
+    path("", user_login, name="login"),
+    path("borrow/", borrow_book, name="borrow_books"),
+    path('borrow-history/<int:book_id>/', views.borrow_history, name='borrow_history')
 
 ]
 

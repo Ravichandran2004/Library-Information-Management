@@ -5,22 +5,24 @@
 {% block main_content %}
 <main role="main">
   <div class="jumbotron">
-    <div class="containers">
+    <div class="container text-center">
       <img src="{% static 'LIMS_LOGO.png' %}" class="rounded float-start" alt="LIMS logo" height="155" style="margin-right:20px;">
       <h1 class="display-4">Hello, Readers!</h1>
-      <p>Welcome to VGM library. We have a large collection of books to cater to the reading needs of all kinds of readers.</p>
-      <!-- Updated link to point to your books list page -->
-      <p>
-        <a role="button" href="{% url 'book_list' %}" class="btn btn-primary">
-          Browse our collection >>
-        </a>
-      </p>
+      <p>Welcome to VGM Library. We have a large collection of books to cater to the reading needs of all kinds of readers.</p>
+
+
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+        <a role="button" href="{% url 'book_list' %}" class="btn btn-primary btn-md custom-btn">Browse Collection</a>
+        <a role="button" href="{% url 'save_reader' %}" class="btn btn-primary btn-md custom-btn">Add New Reader</a>
+        <a role="button" href="{% url 'borrow_books' %}" class="btn btn-primary btn-md custom-btn">Borrow New Book</a>
+        <a role="button" href="{% url 'my_bag' %}" class="btn btn-primary btn-md custom-btn">Return Book</a>
+        <a role="button" href="{% url 'returns' %}" class="btn btn-primary btn-md custom-btn">Take Receipt</a>
+      </div>
     </div>
   </div>
 
   <div class="container">
     <div class="row">
-
       <div class="col">
         <h2>Why Reading is important</h2>
         <p>Reading is good for you because it improves your focus, memory, empathy, and communication skills. It can reduce stress, improve your mental health, and help you live longer. Reading also allows you to learn new things to help you succeed in your work and relationships.</p>
@@ -40,12 +42,23 @@
         <h2>Thought for the day!</h2>
         <p>A quote by Ella Fitzgerald: "Just don't give up trying to do what you really want to do. Where there is love and inspiration, I don't think you can go wrong".</p>
       </div>
-
     </div>
     <hr>
   </div>
 </main>
+
 <footer class="container">
   <p>@ VGM Library 2024</p>
 </footer>
+
+<!-- Custom CSS for button styling -->
+<style>
+  .custom-btn {
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+</style>
 {% endblock %}

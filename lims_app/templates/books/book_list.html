@@ -49,7 +49,7 @@
         </div>
     </div>
 
-    <!-- Number of Books Found -->
+
     <div class="row mt-3">
         <p>{{ books|length }} books found.</p>
     </div>
@@ -68,6 +68,7 @@
                         <td>Price for 5 Days</td>
                         <td>Daily Rate</td>
                         <td>Availability</td>
+                        <td>Borrow History</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,6 +91,9 @@
                                 {% endif %}
                             </form>
                         </td>
+                        <td>
+                            <a href="{% url 'borrow_history' book.id %}" class="btn btn-info">View</a>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -102,7 +106,7 @@
     </div>
 </div>
 
-<!-- NEW: Simple Previous & Next Buttons -->
+
 <div>
     <div class="row" style="margin-top: 20px;">
         <div class="col-md-12 text-center">

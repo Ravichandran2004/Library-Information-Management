@@ -19,8 +19,8 @@ class Reader(models.Model):
 class Book(models.Model):
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=100)
-    isbn = models.CharField(max_length=20)
-    price_5_days = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    isbn = models.CharField(max_length=20, unique=True)
+    price_5_days = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     daily_rate = models.DecimalField(max_digits=6, decimal_places=2, null=False, default=0.00)
     available = models.BooleanField(default=True)
 
@@ -28,6 +28,7 @@ class Book(models.Model):
         return f'{self.title} by {self.author}'
 
 def get_return_date():
+    """Returns the default return date as 5 days from the current date."""
     return datetime.now() + timedelta(days=5)
 
 class BorrowRecord(models.Model):
@@ -67,14 +68,17 @@ class BorrowRecord(models.Model):
             extra_days = days_borrowed - 5
             return self.book.price_5_days + (extra_days * self.book.daily_rate)
 
+    def __str__(self):
+        return f"{self.user.username} - {self.book.title} - {self.borrowed_date}"
+
 class APIRequestLog(models.Model):
     """Logs API requests without affecting existing data"""
     user = models.CharField(max_length=255, null=True, blank=True)
     path = models.TextField()
     method = models.CharField(max_length=10)
     status_code = models.IntegerField()
-    user_agent = models.TextField(null=True, blank=True)  # ✅ Added missing fields
-    ip_address = models.GenericIPAddressField(null=True, blank=True)  # ✅ Added missing fields
+    user_agent = models.TextField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -84,11 +88,11 @@ def log_api_request(request, status_code):
     """Logs API requests automatically"""
     from django.utils.timezone import now
     APIRequestLog.objects.create(
-        user=request.user.username if request.user.is_authenticated else None,  # ✅ Fixed user reference
-        path=request.path,  # ✅ Fixed field name
+        user=request.user.username if request.user.is_authenticated else None,
+        path=request.path,
         method=request.method,
         status_code=status_code,
-        created_at=now(),  # ✅ Fixed field name
+        created_at=now(),
         user_agent=request.META.get("HTTP_USER_AGENT", ""),
         ip_address=request.META.get("REMOTE_ADDR"),
     )
