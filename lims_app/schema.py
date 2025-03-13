@@ -29,6 +29,7 @@ class Query(graphene.ObjectType):
     all_borrow_records = graphene.List(BorrowRecordType)
     all_users = graphene.List(UserType)
     available_books = graphene.List(BookType)
+    borrow_history = graphene.List(BorrowRecordType, user_id=graphene.Int(required=True))
 
     def resolve_all_readers(self, info):
         return Reader.objects.all()
@@ -45,6 +46,8 @@ class Query(graphene.ObjectType):
     def resolve_available_books(self, info):
         return Book.objects.filter(available=True)
 
+    def resolve_borrow_history(self, info, user_id):
+        return BorrowRecord.objects.filter(user_id=user_id)
 
 
 class BorrowBookMutation(graphene.Mutation):
@@ -195,3 +198,14 @@ class Mutation(graphene.ObjectType):
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
+
+
+
+
+
+
+
+
+
+
+

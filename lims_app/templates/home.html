@@ -13,7 +13,7 @@
 
       <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
         <a role="button" href="{% url 'book_list' %}" class="btn btn-primary btn-md custom-btn">Browse Collection</a>
-        <a role="button" href="{% url 'save_reader' %}" class="btn btn-primary btn-md custom-btn">Add New Reader</a>
+        <a role="button" href="{% url 'readers_tab' %}" class="btn btn-primary btn-md custom-btn">Add New Reader</a>
         <a role="button" href="{% url 'borrow_books' %}" class="btn btn-primary btn-md custom-btn">Borrow New Book</a>
         <a role="button" href="{% url 'my_bag' %}" class="btn btn-primary btn-md custom-btn">Return Book</a>
         <a role="button" href="{% url 'returns' %}" class="btn btn-primary btn-md custom-btn">Take Receipt</a>
@@ -51,7 +51,7 @@
   <p>@ VGM Library 2024</p>
 </footer>
 
-<!-- Custom CSS for button styling -->
+
 <style>
   .custom-btn {
     font-family: Arial, sans-serif;

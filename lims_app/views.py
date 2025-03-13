@@ -484,7 +484,7 @@ def receipt(request, record_id):
     return render(request, 'receipt.html', {'record': record})
 
 def borrow_book(request):
-    books = Book.objects.all()  # Fetch all books
+    books = Book.objects.all()
     return render(request, 'books/book_list.html', {'books': books})
 
 def register_staff(request):

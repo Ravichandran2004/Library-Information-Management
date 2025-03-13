@@ -11,7 +11,7 @@
         </div>
     </div>
 
-    <!-- Buttons that trigger the modals -->
+
     <div class="row mb-3">
         <div class="col-md-12">
             <!-- Kept the same, just added btn-sm for smaller, sleeker buttons -->
@@ -30,7 +30,7 @@
             <!-- Added 'rounded shadow' for a subtle card-like look -->
             <nav class="navbar bg-body-light rounded shadow" style="padding-top: 20px; padding-bottom: 20px;">
                 <div class="container-fluid d-flex justify-content-center">
-                    <!-- Use d-flex align-items-center so everything stays on one line -->
+
                     <form class="d-flex align-items-center" role="search" action="{% url 'book_list' %}" method="GET">
                         <input
                           class="form-control me-2"
@@ -40,7 +40,7 @@
                           name="q"
                           value="{{ query }}"
                         >
-                        <!-- Added btn-sm for the search & clear buttons -->
+
                         <button class="btn btn-outline-primary btn-sm me-2" type="submit">Search</button>
                         <a href="{% url 'book_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
                     </form>
@@ -54,7 +54,7 @@
         <p>{{ books|length }} books found.</p>
     </div>
 
-    <!-- Book Table -->
+
     <div class="row" style="margin-top: 20px;">
         <div class="container" style="overflow-y: auto; height: 400px;">
             <!-- Added table-striped, table-bordered, table-sm for a nicer table style -->
@@ -84,7 +84,7 @@
                             <form method="POST" action="{% url 'toggle_availability' book.id %}">
                                 {% csrf_token %}
                                 {% if book.available %}
-                                    <!-- Kept same color, added btn-sm -->
+
                                     <button type="submit" class="btn btn-warning btn-sm">Borrowed</button>
                                 {% else %}
                                     <button type="submit" class="btn btn-success btn-sm">Available</button>
@@ -111,7 +111,7 @@
     <div class="row" style="margin-top: 20px;">
         <div class="col-md-12 text-center">
             {% if books.has_previous %}
-                <!-- Added btn-sm for consistency -->
+
                 <a href="?page={{ books.previous_page_number }}" class="btn btn-primary btn-sm me-2">Previous</a>
             {% endif %}
             {% if books.has_next %}
@@ -121,7 +121,7 @@
     </div>
 </div>
 
-<!--# ADD BOOK MODAL-->
+
 <div class="modal fade" id="addBookModal" tabindex="-1" aria-labelledby="addBookModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -132,7 +132,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Form Fields for Adding a Book -->
+
           <div class="mb-3">
             <label for="title" class="form-label">Title</label>
             <input type="text" class="form-control" id="title" name="title" required>
@@ -162,7 +162,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <!-- Added btn-sm to the modal button as well -->
+
           <button type="submit" class="btn btn-primary btn-sm">Add Book</button>
         </div>
       </form>
@@ -170,7 +170,7 @@
   </div>
 </div>
 
-<!--# UPLOAD BOOK MODAL (Your Provided Code) -->
+
 <div class="modal fade" id="uploadBookModal" tabindex="-1" aria-labelledby="uploadBookModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -182,7 +182,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Form Fields for Uploading a Book File -->
+
           <div class="mb-3">
             <label for="book_file" class="form-label">Choose CSV or Excel File</label>
             <input
